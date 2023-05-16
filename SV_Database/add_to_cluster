@@ -1,0 +1,118 @@
+#!/bin/bash
+
+
+##----------------USAGE---------------##
+
+# qsub -q fatnodes -e sv_backup/code/add_to_cluster.err sv_backup/code/add_to_cluster
+
+##------------------------------------##
+
+
+# read config
+cat << EOF > /hpcshare/genomics/plamagna/sv_backup/config_clustering
+$(printf "%s\n" $(grep 'load_tsv' -A4 sv_backup/code/config.ini | tail -n+4))
+EOF
+
+source /hpcshare/genomics/plamagna/sv_backup/config_clustering
+
+
+# set global variables
+_WORKING_DIR=$path_out
+_JOINT_CALLED_VCF=$path_out"sv_${var_type}.csv"   # path dove ci sono i 3 csv divisi per type
+_VARIANTS_DF=$path_out"variants_sv_${var_type}_df"   # path della variants table
+
+cd ${_WORKING_DIR}
+
+
+# downloading variants tables
+singularity exec --bind $HOUSE $BIN/pyodbc.sif python3 /hpcshare/genomics/plamagna/sv_backup/code/connect_to_database.py -a pull -tb variants_sv_${var_type} -o $path_out
+
+
+# making bed with inners clusters for intersect
+printf "%s\n" "making bed with inners clusters for intersect.."
+
+variants_df=$(tail -n+2 $_VARIANTS_DF)
+
+IFS=","
+while read varid id chrom start end type compid freq;do
+	printf "%s\t%s\t%s\n" $chrom $start $end >> ${_WORKING_DIR}"inners.bed"
+done <<< $variants_df
+
+
+# making column names of file with variants to append
+printf "%s\t%s\t%s\n" "id" "sampleid" "GT" > ${_WORKING_DIR}"genotypes_to_append"
+
+
+# looping through joint call
+joint_vcf=$(tail -n+2 ${_JOINT_CALLED_VCF})
+
+while IFS=',' read -r c chr start end len type info id;do
+
+	# making bed with variant from joint call
+	printf "%s\n" "making bed with variant from joint call.."
+	printf "%s\t%s\t%s\n" "chr"$chr $start $end > ${_WORKING_DIR}"bed"
+
+	for f in $(seq 0.70 0.01 1.00);do
+
+		while true;do
+
+			cluster=$(go bedtools intersect -a ${_WORKING_DIR}"bed" -b ${_WORKING_DIR}"inners.bed" -f $f -r -wa -wb | wc -l)
+
+			if ((${cluster} == 0));then
+				
+				echo "$chr $start $end $len $type $info $id" >> ${_WORKING_DIR}"unclustered_variants"
+
+				continue 3
+
+
+			elif ((${cluster} > 1));then
+
+				break 
+
+
+			elif ((${cluster} == 1));then
+
+				cluster=$(go bedtools intersect -a ${_WORKING_DIR}"bed" -b ${_WORKING_DIR}"inners.bed" -f $f -r -wa -wb | cut -f4,5,6 --output-delimiter=",")
+
+				break 2
+
+			fi
+
+		done
+
+	done
+
+
+	# retrieving cluster 
+	cluster_id=$(grep "$cluster" ${_VARIANTS_DF} | cut -d"," -f2)
+
+
+	# retrieving sample id
+	if [ ! -z $(grep 'ASL_NEU_' <<< $id) ];then
+
+		sample_id=$(echo ${id##*ASL_NEU_})
+	
+	elif [ ! -z $(grep 'LP' <<< $id | grep 'DNA') ];then
+
+		sample_id=$(echo "LP"${id##*LP})
+
+	elif [ ! -z $(grep 'PPMI' <<< $id) ];then
+
+		sample_id=$(echo "PPMI"${id##*PPMI})
+
+	fi
+
+
+	# retrieving genotype
+	genotype=$(echo ${info%%:*})
+	genotype=${genotype##*\"}
+
+
+	# adding cluster sample and genotype to genotypes dataframe
+	printf "%s\t%s\t%s\n" "${cluster_id}" "${sample_id}" "${genotype}" >> ${_WORKING_DIR}"genotypes_to_append"
+
+done <<< "$joint_vcf"
+
+
+singularity exec --bind $HOUSE $BIN/pyodbc.sif python3 /hpcshare/genomics/plamagna/sv_backup/code/connect_to_database.py -a upgrade -o $path_out -ty ${var_type}
+
