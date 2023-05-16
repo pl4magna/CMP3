@@ -1,10 +1,5 @@
 #!/usr/bin/python3.6
 
-""" LAUNCH
-echo "singularity exec --bind $HOUSE $BIN/pyodbc.sif python3 /hpcshare/genomics/plamagna/sv_backup/code/connect_to_database.py -a new -o /hpcshare/genomics/plamagna/sv_backup/output/PPMI_ADNI/" | qsub -N connect_to_db -e /hpcshare/genomics/plamagna/sv_backup/code/connect_to_database.err -l walltime=100:00:00
-"""
-
-# psql -h 10.244.0.91 -U vargenius vargenius_db
 
 import os, sys, time
 import argparse as ap
@@ -12,12 +7,15 @@ from getpass import getpass
 import pyodbc
 import pandas as pd
 
+server = ""
+database = ""
+username = ""
 
 # get arguments
 parser = ap.ArgumentParser()
-parser.add_argument("-s", "--server", default="10.244.0.91", type=str, help='server name or ip..')
-parser.add_argument("-d", "--database", default="vargenius_db", type=str, help='name of SQL database..')
-parser.add_argument("-u", "--username", default="vargenius", type=str, help='postgres user ID..')
+parser.add_argument("-s", "--server", default=server, type=str, help='server name or ip..')
+parser.add_argument("-d", "--database", default=database, type=str, help='name of SQL database..')
+parser.add_argument("-u", "--username", default=username, type=str, help='postgres user ID..')
 
 parser.add_argument("-a", "--action", choices=["new", "pull", "upgrade", "ask", "annotate"], required=True, type=str, help='[new | pull | upgrade | cluster_on_tsv] to push new clusters, pull variants and genotypes tables, just upgrade them or cluster SVs within a TSV..')
 
@@ -30,17 +28,17 @@ parser.add_argument("-o", "--output", type=str, help='output path')
 args = parser.parse_args()
 
 # password = getpass("password for postgres server: ")
-password = "vargenius_pwd"
+password = ""
 
 
 # set global variables
-_WORKING_DIR="/hpcshare/genomics/plamagna/sv_backup/output/PPMI_ADNI/"
+_WORKING_DIR=""
 VAR_TYPE = args.type
 VARIANTS_TO_APPEND=_WORKING_DIR+"variants_df"
 # VARIANTS_TO_ADD="/hpcshare/genomics/plamagna/to_add"
 GENOTYPES_TO_APPEND=_WORKING_DIR+"genotypes_df"
 CLUSTERS_TO_APPEND=_WORKING_DIR+"clusters_df"
-CLUSTERED_SAMPLES_PATH="/hpcshare/genomics/plamagna/sv_backup/path_list"
+CLUSTERED_SAMPLES_PATH=""
 
 
 os.chdir(_WORKING_DIR)
