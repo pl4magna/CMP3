@@ -1,17 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jul 19 12:04:57 2022
-
-@author: massale
-"""
-
-"""
-Usage:
-
-echo "singularity exec --bind /hpcshare/genomics/plamagna/sv_backup/,/hpcshare/genomics/afant/PPMI/,/archive/s2/genomics/plamagna/adni/ /hpcshare/genomics/plamagna/sv_backup/container/clustering3.sif python /hpcshare/genomics/plamagna/sv_backup/code/load_PPMI_consensus.py -c /hpcshare/genomics/plamagna/sv_backup/code/config.ini" | qsub -q fatnodes -e load_PPMI_consensus.err
-
-"""
-
+#!/usr/bin/python3.6
 
 import os, sys
 import numpy as np
