@@ -1,8 +1,7 @@
 library(magrittr)
 
-# paste samples from ls command terminal
+
 samples <- colnames(geno)
-#samples <- strsplit(samples, split = " ") %>% unlist %>% substr(1, 17)
 
 corrispondence <- read.csv("~/Desktop/adni/ADNI_PTID_WGS_Sample_Correspondence.csv")
 pheno <- read.csv("~/Desktop/adni/ADNIMERGE.csv")
@@ -30,7 +29,7 @@ pheno_colnames <- sapply(colnames(pheno), FUN=f)
 colnames(pheno) <- pheno_colnames
 
 covariates <- rbind(pheno, pca)
-write.table(covariates, file="ADNI_AFFECTED_DUP/covariates_dup", sep = "\t", quote = F)
+write.table(covariates, file="covariates_dup", sep = "\t", quote = F)
 
 
 

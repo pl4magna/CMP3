@@ -1,11 +1,8 @@
 library(vcfR)
+library(stringr)
 
 # read merged VCF
-vcf <- read.vcfR("samples_merged_DUP.rate90.maf05.Final.vcf.gz", verbose = FALSE )
-head(vcf)
-vcf
-
-vcf@fix %>% View()
+vcf <- read.vcfR("samples_merged_DEL.rate90.maf05.Final.vcf.gz", verbose = FALSE )
 
 # extract gt (numeric) from merged VCF
 gt <- extract.gt(vcf, element = 'GT', as.numeric = TRUE)
@@ -14,15 +11,9 @@ gt <- rbind(colnames(gt), gt)
 View(gt)
 
 # subsetting
-library(stringr)
-#expression_table <- read.delim("expression") # from expression.R
-#colnames(expression_table) <- str_replace(colnames(expression_table), "\\.", "-")
-sub <-append(1, which(colnames(gt) %in% colnames(expression_table))) # 422 matches, lost 58 samples
+sub <-append(1, which(colnames(gt) %in% colnames(expression_table)))
 geno <- gt[,sub]
-write.table(geno, file="ADNI_AFFECTED_DUP/genotypes_dup", sep = "\t", col.names = F, row.names = F, quote = F)
-
-#write.table(as.data.frame(gt), file="genotypes", sep = "\t", col.names = F, row.names = F, quote = F)
-
+write.table(geno, file="genotypes_dup", sep = "\t", col.names = F, row.names = F, quote = F)
 
 # SV positions
 
@@ -44,7 +35,7 @@ posi$mean_pos <- apply(posi["mean_pos"], 1, round)
 posi <- posi[,c(1,2,5)]
 colnames(posi) <- c("id", "chr", "pos")
 
-write.table(posi, file="ADNI_AFFECTED_DUP/sv_pos_dup", sep = "\t", col.names = T, row.names = F, quote = F)
+write.table(posi, file="sv_pos_dup", sep = "\t", col.names = T, row.names = F, quote = F)
 
 
 

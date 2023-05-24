@@ -19,21 +19,16 @@ expression_file_name = paste(getwd(), "ADNI_AFFECTED_DEL/expression_table_DEL", 
 gene_location_file_name = paste(getwd(), "gene_loc", sep="/");
 
 # Covariates file name
-# Set to character() for no covariates
 covariates_file_name = paste(getwd(), "ADNI_AFFECTED_DEL/covariates_del", sep="/");
 
 # Output file name
 output_file_name_cis = paste(getwd(), "ADNI_AFFECTED_DEL/result_eQTL_del", sep="/");
-#output_file_name_tra = paste(getwd(), "result_eQTL_dup", sep="/");
 
 # Only associations significant at this level will be saved
 pvOutputThreshold_cis = 5e-2;
-#pvOutputThreshold_tra = 1e-2;
 
 # Error covariance matrix
-# Set to numeric() for identity.
 errorCovariance = numeric();
-# errorCovariance = read.table("Sample_Data/errorCovariance.txt");
 
 # Distance for local gene-SNP pairs
 cisDist = 1e6;
@@ -91,11 +86,8 @@ me = Matrix_eQTL_main(
   min.pv.by.genesnp = FALSE,
   noFDRsaveMemory = FALSE)
 
-unlink(output_file_name_tra)
 unlink(output_file_name_cis)
 
-me$cis$eqtls %>% View()
-me$cis$eqtls[which(me$cis$eqtls$FDR <= 0.05),] %>% View()
 
 write.csv(me$cis$eqtls[which(me$cis$eqtls$FDR <= 0.05),], file = "ADNI_AFFECTED_DEL/result_eQTL_FDR_filt_del", quote = F)
 
