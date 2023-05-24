@@ -2,8 +2,8 @@
 
 variants=$1
 
-_WORKING_DIR="/hpcshare/genomics/plamagna/sv_backup/output/PPMI_ADNI/interrogated/"
-BIN="/hpcshare/genomics/bin/"
+_WORKING_DIR=""
+BIN=""
 
 mkdir -p ${_WORKING_DIR}
 
@@ -35,7 +35,7 @@ fi
 
 
 # run connect_to_database.py
-singularity exec --bind /hpcshare/genomics/plamagna/sv_backup/code/,$_WORKING_DIR,$PWD $BIN/pyodbc.sif python3 /hpcshare/genomics/plamagna/sv_backup/code/connect_to_database.py -a ask -w $variants -o $_WORKING_DIR
+singularity exec python3 connect_to_database.py -a ask -w $variants -o $_WORKING_DIR
 
 
 # check if more than one variant, in case use "cut"
@@ -111,13 +111,13 @@ for var in ${variants[@]};do
 
 		sampleid=$(cut -d"," -f3 <<< $out)
 		geno=$(cut -d"," -f4 <<< $out)
-		samplename=$(grep "^${sampleid}," /hpcshare/genomics/plamagna/sv_backup/output/PPMI_ADNI/samples_df | cut -d"," -f6)
+		samplename=$(grep "^${sampleid}," samples_df | cut -d"," -f6)
 
 		if [ ${samplename:0:4} == "PPMI" ];then
-			pheno=$(grep ${samplename##*I} /hpcshare/genomics/shared/PPMI/SAMPLES/pheno_samples | cut -d" " -f1 )
+			pheno=$(grep ${samplename##*I} pheno_samples | cut -d" " -f1 )
 
 		else
-			pheno=$(cat /hpcshare/genomics/plamagna/adni/CN /hpcshare/genomics/plamagna/adni/EMCI /hpcshare/genomics/plamagna/adni/LMCI /hpcshare/genomics/plamagna/adni/AD | grep $samplename | cut -d" " -f1)
+			pheno=$(cat CN EMCI LMCI AD | grep $samplename | cut -d" " -f1)
 		fi
 
 		printf "$rows" "$var" "$samplename" "|" "$geno" "|" "$pheno"

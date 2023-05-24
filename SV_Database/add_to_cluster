@@ -3,7 +3,7 @@
 
 ##----------------USAGE---------------##
 
-# qsub -q fatnodes -e sv_backup/code/add_to_cluster.err sv_backup/code/add_to_cluster
+# qsub add_to_cluster
 
 ##------------------------------------##
 
@@ -18,8 +18,8 @@ source /hpcshare/genomics/plamagna/sv_backup/config_clustering
 
 # set global variables
 _WORKING_DIR=$path_out
-_JOINT_CALLED_VCF=$path_out"sv_${var_type}.csv"   # path dove ci sono i 3 csv divisi per type
-_VARIANTS_DF=$path_out"variants_sv_${var_type}_df"   # path della variants table
+_JOINT_CALLED_VCF=$path_out"sv_${var_type}.csv" type
+_VARIANTS_DF=$path_out"variants_sv_${var_type}_df"
 
 cd ${_WORKING_DIR}
 
@@ -114,5 +114,5 @@ while IFS=',' read -r c chr start end len type info id;do
 done <<< "$joint_vcf"
 
 
-singularity exec --bind $HOUSE $BIN/pyodbc.sif python3 /hpcshare/genomics/plamagna/sv_backup/code/connect_to_database.py -a upgrade -o $path_out -ty ${var_type}
+singularity exec python3 connect_to_database.py -a upgrade -o $path_out -ty ${var_type}
 

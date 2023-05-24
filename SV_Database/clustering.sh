@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# qsub -q fatnodes -e sv_backup/output/clustering.err sv_backup/code/clustering.sh
+# qsub clustering.sh
 
 
 # read config
-cat << EOF > /hpcshare/genomics/plamagna/sv_backup/config_clustering
-$(printf "%s\n" $(grep 'clust' -A3 sv_backup/code/config.ini | tail -n+2))
+cat << EOF > config_clustering
+$(printf "%s\n" $(grep 'clust' -A3 config.ini | tail -n+2))
 EOF
 
-source /hpcshare/genomics/plamagna/sv_backup/config_clustering
+source config_clustering
 
 _WORKING_DIR=$path_out
 _TMPFILE_NCLS="tmp_cls"
@@ -19,7 +19,7 @@ echo 0 > ${_WORKING_DIR}/${_TMPFILE_NCLS}
 mkdir -p ${_WORKING_DIR}/clusters/
 mkdir -p ${_WORKING_DIR}/chr_intersections/
 
-rm /hpcshare/genomics/plamagna/sv_backup/config_clustering
+rm config_clustering
 
 
 find_inners(){ ## returns mean point from an array of coordinates
@@ -76,14 +76,6 @@ for c in {1..22..1} X Y;do
 			cluster=${cluster:0:7}_0${cluster:8}
 		fi
 
-		# while read chr start1 end1 n start2 end2;do
-
-		# 	echo $chr $start1 $end1 >> ${_WORKING_DIR}/outputs/clusters/${cluster}
-
-		# 	sed -i "/${chr}\t${start1}\t${end1}/d" ${_WORKING_DIR}/outputs/chr_intersections/chr$c 
-
-		# done < ${_WORKING_DIR}/outputs/intersections
-
 		# writing clusters
 		while read chr start1 end1 n start2 end2;do
 
@@ -98,9 +90,6 @@ for c in {1..22..1} X Y;do
 
 		give_inners ${_WORKING_DIR}/clusters/${cluster}
 
-		#n=$((n + 1))
-		#(( n+=1 ))
-		#n=$[$n +1]
 
 		if [ $( wc -l ${_WORKING_DIR}/chr_intersections/chr$c | cut -d " " -f1 ) -eq 0 ];then
 			break

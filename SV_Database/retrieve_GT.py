@@ -1,7 +1,7 @@
 #!/usr/bin/python3.6
 
 """ LAUNCH
-echo "singularity exec --bind $HOUSE,/archive/s2/genomics/plamagna/adni/,/hpcshare/genomics/afant/PPMI/ /hpcshare/genomics/plamagna/sv_backup/container/clustering3.sif python /hpcshare/genomics/plamagna/sv_backup/code/retrieve_GT.py -c /hpcshare/genomics/plamagna/sv_backup/code/config.ini -k" | qsub -e /hpcshare/genomics/plamagna/sv_backup/code/retrieve_GT.err -l walltime=100:00:00
+echo "singularity clustering3.sif python retrieve_GT.py -c config.ini" | qsub -l walltime=100:00:00
 """
 
 
